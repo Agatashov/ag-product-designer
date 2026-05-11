@@ -163,7 +163,7 @@ ul {
 }
 
 .hero-headline {
-  padding: 4rem 3vw 4rem;
+  padding: 2.5rem 3vw 2.5rem;
   border-right: 1px solid var(--rule);
   display: flex;
   align-items: flex-end;
@@ -171,9 +171,9 @@ ul {
 
 .hero-headline h1 {
   font-family: var(--sans);
-  font-size: clamp(4rem, 9.5vw, 13rem);
+  font-size: clamp(2.8rem, 7vw, 8rem);
   font-weight: 900;
-  line-height: 0.88;
+  line-height: 0.9;
   letter-spacing: -0.04em;
   display: flex;
   flex-direction: column;
@@ -228,7 +228,7 @@ ul {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--green);
   display: inline-block;
   flex-shrink: 0;
   animation: blink 2.5s ease-in-out infinite;
@@ -411,10 +411,10 @@ section {
   gap: 2rem;
   align-items: start;
   padding: 3rem 3vw;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.15);
   position: relative;
   cursor: default;
-  transition: background 0.2s ease-out;
+  transition: background 0.2s ease-out, border-color 0.2s ease-out;
 }
 
 .project-row:last-child {
@@ -424,7 +424,7 @@ section {
 .project-row::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -1px;
   left: 0;
   right: 0;
   height: 2px;
@@ -548,7 +548,14 @@ section {
   opacity: 1;
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--rule);
+  padding-bottom: 1rem;
+  /* Bold top rule: visually ties detail to its parent row */
+  border-top: 2px solid var(--ink);
+}
+
+/* When open: add padding at the bottom */
+.project-row.open {
+  padding-bottom: 3.5rem;
 }
 
 /* Hover zone sits in col 4 */
@@ -1148,6 +1155,7 @@ section {
 
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
+
   .reveal,
   .reveal-clip,
   .reveal-left {
@@ -1279,6 +1287,15 @@ section {
   .project-row.open .proj-detail {
     gap: 1.25rem;
     max-height: 1400px;
+    /* Red left accent bar: owns this content to the row above */
+    border-top: none;
+    border-left: 3px solid var(--red);
+    padding-left: 1.25rem;
+    margin-left: 0;
+  }
+
+  .project-row.open {
+    padding-bottom: 2.5rem;
   }
 
   /* Milestones responsive — stack label above content */
