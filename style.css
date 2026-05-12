@@ -14,6 +14,7 @@
   /* 5.86:1 on --bg — passes WCAG AA */
   --rule: #D4D1CB;
   --red: #E0001A;
+  --green: #06A77D;
   --sans: 'Inter', system-ui, sans-serif;
   --mono: 'DM Mono', 'Courier New', monospace;
   --nav-h: 56px;
@@ -184,10 +185,13 @@ ul {
 }
 
 .h1-outline {
+  font-family: var(--sans);
+  /* Same Inter — Swiss monoculture */
+  font-weight: 700;
+  /* Light vs the 900 solid — pure weight contrast */
   color: transparent;
-  -webkit-text-stroke: 3px var(--ink);
+  -webkit-text-stroke: 1.5px var(--ink);
   paint-order: stroke fill;
-  /* Swiss editorial: outlined type creates positive/negative tension */
 }
 
 .hero-meta {
@@ -1193,6 +1197,10 @@ section {
     grid-column: 1;
   }
 
+  .exp-period .mobile-inline {
+    display: none;
+  }
+
   .exp-company {
     grid-row: 1;
     grid-column: 2;
@@ -1503,8 +1511,6 @@ section {
   .exp-period {
     grid-row: unset;
     grid-column: unset;
-    color: var(--red);
-    font-size: 0.7rem;
   }
 
   .exp-company {
