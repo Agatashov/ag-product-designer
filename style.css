@@ -562,6 +562,67 @@ section {
   padding-bottom: 3.5rem;
 }
 
+/* ---- ALSO WORKED ON ---- */
+.also-worked-on {
+  border-top: 1px solid rgba(17, 17, 17, 0.15);
+  padding: 3rem 3vw 3.5rem;
+}
+
+.also-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 1.75rem;
+}
+
+.also-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.also-item {
+  display: grid;
+  grid-template-columns: 60px 90px 1fr 2fr;
+  gap: 0 2rem;
+  align-items: baseline;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.also-item:last-child {
+  border-bottom: none;
+}
+
+.also-index {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+}
+
+.also-year {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+}
+
+.also-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.also-desc {
+  font-size: 0.72rem;
+  color: var(--dim);
+  line-height: 1.55;
+  max-width: 52ch;
+}
+
 /* Hover zone sits in col 4 */
 .proj-media-container {
   grid-column: 4;
@@ -570,33 +631,18 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem;
-  border: 1px solid var(--rule);
+  /* Consistent thumbnail height — 2:3 portrait feels right for screens */
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
   background: var(--ink);
+  border: 1px solid rgba(17,17,17,0.15);
   cursor: pointer;
   order: 2;
-  transition: background 0.2s ease-out, border-color 0.2s ease-out;
+  transition: border-color 0.2s ease-out;
 }
 
 .proj-media-container:hover {
-  background: #1a1a1a;
   border-color: var(--dim);
-}
-
-.proj-media-label {
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--bg);
-  text-align: center;
-  line-height: 1.8;
-  user-select: none;
-  transition: color 0.2s ease-out;
-}
-
-.proj-media-container:hover .proj-media-label {
-  color: var(--red);
 }
 
 /* Text panel in col 3 — matches .proj-desc sizing */
@@ -746,58 +792,231 @@ section {
   line-height: 1.5;
 }
 
-/* ================================================
-   VIDEO LIGHTBOX
-   ================================================ */
-.video-lightbox {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  /* Always passthrough — initial image is the hover zone */
-  pointer-events: none;
-  transition: opacity 0.25s ease-out;
-}
-
-.video-lightbox.open {
-  opacity: 1;
-  /* pointer-events remain none — mouse goes through to thumbnail */
-}
-
-.video-lightbox-backdrop {
+/* Thumbnail grid inside proj-media-container */
+.proj-gallery-thumbs {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  pointer-events: none;
-}
-
-.video-lightbox-content {
-  position: relative;
-  width: 90vw;
-  max-width: 1200px;
-  aspect-ratio: 16 / 9;
-  z-index: 1;
-  background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
   overflow: hidden;
 }
 
-.video-lightbox-content video {
+.proj-gallery-thumbs img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
+  opacity: 0.75;
+  transition: opacity 0.25s ease-out;
+}
+
+.proj-media-container:hover .proj-gallery-thumbs img {
+  opacity: 0.55;
+}
+
+/* Video slot in the thumbnail grid */
+.proj-gallery-thumb-video {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.2s ease-out;
+}
+
+.proj-media-container:hover .proj-gallery-thumb-video {
+  color: rgba(255,255,255,0.9);
+}
+
+.proj-media-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  text-align: center;
+  line-height: 1.8;
+  user-select: none;
+  transition: color 0.2s ease-out;
+}
+
+.proj-media-container:hover .proj-media-label {
+  color: var(--red);
+}
+
+/* ================================================
+   IMAGE / VIDEO GALLERY LIGHTBOX — vertical scroll
+   ================================================ */
+.img-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+.img-lightbox.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.img-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  cursor: pointer;
+}
+
+/* Full-height scrollable column — full-width, centered content */
+.img-lightbox-scroll {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 3.5rem 0 6rem; /* top: room for close btn, bottom: room for HUD */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+
+.img-lightbox-scroll::-webkit-scrollbar { width: 4px; }
+.img-lightbox-scroll::-webkit-scrollbar-track { background: transparent; }
+.img-lightbox-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+}
+
+/* Each gallery item — centered, max width, spaced */
+.gallery-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 0 auto 3px; /* 3px gap between items */
+  max-width: min(92vw, 1200px);
+  position: relative;
+  background: #111; /* fallback while loading */
+}
+
+.gallery-item:first-child { margin-top: 0; }
+
+/* Images */
+.gallery-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  /* Fade in once loaded */
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+
+.gallery-item img.loaded {
+  opacity: 1;
+}
+
+/* Videos */
+.gallery-item video {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Keep video within viewport height so controls stay in frame */
+  max-height: 88vh;
+  background: #000;
+  object-fit: contain;
+}
+
+/* Loading shimmer placeholder */
+.gallery-item-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9; /* rough default; updated by JS when dims known */
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Close button — top right, above scroll */
+.img-lightbox-close {
+  position: fixed;
+  top: 1rem;
+  right: 1.25rem;
+  z-index: 2;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  width: 2.2rem;
+  height: 2.2rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease-out, color 0.2s ease-out;
+  backdrop-filter: blur(6px);
+}
+
+.img-lightbox-close:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* HUD bar — bottom center: prev counter next */
+.img-lightbox-hud {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.4rem 0.75rem;
+  backdrop-filter: blur(8px);
+}
+
+.img-lightbox.single .img-lightbox-hud {
+  display: none; /* nothing to navigate with 1 item */
+}
+
+.img-lightbox-nav {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  line-height: 1;
+  transition: color 0.15s ease-out;
+}
+
+.img-lightbox-nav:hover {
+  color: #fff;
+}
+
+.img-lightbox-counter {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.5);
+  min-width: 3.5ch;
+  text-align: center;
 }
 
 .project-row {
