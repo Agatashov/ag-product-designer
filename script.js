@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let counterObserver = null;
 
   function isVideo(src) { return VIDEO_EXTS.test(src); }
+  function isHtml(src)  { return src.startsWith('html:'); }
 
   /* Build all gallery-item DOM nodes (with shimmer placeholders) */
   function buildGallery(srcs) {
@@ -193,18 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
           if (item.dataset.loaded) return;
           item.dataset.loaded = '1';
 
-          if (isVideo(src)) {
+          if (isHtml(src)) {
+            const url = src.slice(5); // strip 'html:' prefix
+            const frame = document.createElement('iframe');
+            frame.src = url;
+            frame.className = 'gallery-iframe';
+            frame.setAttribute('allowfullscreen', '');
+            frame.addEventListener('load', () => {
+              item.querySelector('.gallery-item-placeholder')?.remove();
+            }, { once: true });
+            item.appendChild(frame);
+          } else if (isVideo(src)) {
             const vid = document.createElement('video');
             vid.controls = true;
             vid.playsInline = true;
             vid.muted = true;
             vid.src = src;
-            // Remove placeholder once metadata loads
             vid.addEventListener('loadedmetadata', () => {
               item.querySelector('.gallery-item-placeholder')?.remove();
             }, { once: true });
             item.appendChild(vid);
-            // Autoplay if it's the first item
             if (parseInt(item.dataset.index) === 0) {
               vid.play().catch(() => {});
             }
@@ -216,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
               img.classList.add('loaded');
               item.querySelector('.gallery-item-placeholder')?.remove();
             }, { once: true });
-            img.src = src; // triggers load
+            img.src = src;
             item.appendChild(img);
           }
         } else {
@@ -298,6 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
       v.removeAttribute('src');
       v.load();
     });
+    // Blank out iframes to stop their JS
+    lightboxScroll.querySelectorAll('iframe').forEach(f => { f.src = 'about:blank'; });
     if (loadObserver) loadObserver.disconnect();
     if (counterObserver) counterObserver.disconnect();
 

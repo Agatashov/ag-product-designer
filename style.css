@@ -589,6 +589,24 @@ section {
   align-items: baseline;
   padding: 0.9rem 0;
   border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+
+.also-item::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-out;
+}
+
+.also-item:hover::after {
+  transform: scaleX(1);
 }
 
 .also-item:last-child {
@@ -614,6 +632,17 @@ section {
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--ink);
+  transition: color 0.18s ease-out;
+}
+
+.also-item:hover .also-name {
+  color: var(--red);
+}
+
+.also-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .also-desc {
@@ -621,6 +650,22 @@ section {
   color: var(--dim);
   line-height: 1.55;
   max-width: 52ch;
+}
+
+.also-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.also-tag {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  padding: 0.18em 0.55em;
+  color: var(--dim);
 }
 
 /* Hover zone sits in col 4 */
@@ -830,6 +875,42 @@ section {
   color: rgba(255,255,255,0.9);
 }
 
+/* HTML / interactive case study slot */
+.proj-gallery-thumb-html {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #0f2744 0%, #1a3a6b 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.thumb-html-icon {
+  font-size: 2rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1;
+  transition: color 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.thumb-html-label {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.2s ease-out;
+}
+
+.proj-media-container:hover .thumb-html-icon {
+  color: rgba(255,255,255,0.9);
+  transform: scale(1.1);
+}
+
+.proj-media-container:hover .thumb-html-label {
+  color: rgba(255,255,255,0.8);
+}
+
 .proj-media-label {
   position: relative;
   z-index: 1;
@@ -872,7 +953,7 @@ section {
   cursor: pointer;
 }
 
-/* Full-height scrollable column — full-width, centered content */
+/* Full-height scrollable column — 80px gutters on each side */
 .img-lightbox-scroll {
   position: absolute;
   inset: 0;
@@ -880,7 +961,7 @@ section {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: 3.5rem 0 6rem; /* top: room for close btn, bottom: room for HUD */
+  padding: 3.5rem 80px 6rem; /* top: close btn, sides: 80px, bottom: HUD */
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.12) transparent;
 }
@@ -892,13 +973,13 @@ section {
   border-radius: 2px;
 }
 
-/* Each gallery item — centered, max width, spaced */
+/* Each gallery item — fills the scroll container (viewport - 160px) */
 .gallery-item {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  margin: 0 auto 3px; /* 3px gap between items */
-  max-width: min(92vw, 1200px);
+  margin: 0 0 3px; /* 3px gap between items */
+  width: 100%;
   position: relative;
   background: #111; /* fallback while loading */
 }
@@ -925,10 +1006,18 @@ section {
   display: block;
   width: 100%;
   height: auto;
-  /* Keep video within viewport height so controls stay in frame */
   max-height: 88vh;
   background: #000;
   object-fit: contain;
+}
+
+/* Embedded HTML pages */
+.gallery-iframe {
+  display: block;
+  width: 100%;
+  height: 85vh;
+  border: none;
+  background: #fff;
 }
 
 /* Loading shimmer placeholder */
