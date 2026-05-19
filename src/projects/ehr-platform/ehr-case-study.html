@@ -1,791 +1,975 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EHR Case Study</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/feather-icons"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
-    body { font-family: "Inter", sans-serif; background-color: #f8fafc; }
-    
+
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #f8fafc;
+    }
+
     .annotation-card {
       border: 1px solid #e2e8f0;
       border-left-width: 4px;
       transition: all 0.2s;
     }
+
     .annotation-card.active {
       background-color: var(--ann-bg);
       border-color: var(--ann-color);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     }
-    
+
     .annotation-dot {
       position: absolute;
       transform: translate(-50%, -50%);
       cursor: pointer;
       z-index: 20;
     }
+
     .annotation-dot-inner {
-      width: 24px; height: 24px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       color: white;
       font-size: 11px;
       font-weight: bold;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: transform 0.15s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     }
+
     .annotation-dot.active .annotation-dot-inner {
       transform: scale(1.25);
       box-shadow: 0 0 0 3px white, 0 0 0 5px var(--ann-color);
     }
+
     .annotation-ping {
       position: absolute;
-      width: 32px; height: 32px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       opacity: 0;
     }
+
     .annotation-dot.active .annotation-ping {
       opacity: 0.3;
       animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-    
+
     .emr-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(15,39,68,0.18);
+      background: rgba(15, 39, 68, 0.18);
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.2s;
       z-index: 10;
     }
+
     .has-active-annotation .emr-overlay {
       opacity: 1;
     }
-    
+
     @keyframes ping {
-      75%, 100% { transform: scale(1.5); opacity: 0; }
+
+      75%,
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<div class="min-h-screen">
-  
-  <!-- Hero header -->
-  <div class="bg-[#0f2744] text-white">
-    <div class="max-w-7xl mx-auto px-8 py-12">
-      <div class="flex items-start justify-between gap-8">
-        <div class="flex-1">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="text-xs font-semibold text-blue-300 uppercase tracking-widest">Case Study</span>
-            <span class="text-blue-600">&middot;</span>
-            <span class="text-xs text-blue-300">Healthcare EMR Redesign</span>
-          </div>
-          <h1 class="font-bold text-white mb-3 text-4xl leading-tight">Care Plan Module</h1>
-          <p class="text-blue-200 max-w-xl leading-relaxed mb-5 text-[15px]">
-            A reimagined clinical care plan experience — replacing a dense, non-interactive data table with
-            a card-based system built around how clinicians actually think during a visit.
-          </p>
-          <div class="flex items-center gap-3 flex-wrap">
-            <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-100 border border-white/15 text-xs"><i data-feather="code" class="w-3 h-3"></i>Vanilla HTML/JS</span>
-            <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-100 border border-white/15 text-xs"><i data-feather="pen-tool" class="w-3 h-3"></i>Tailwind CSS</span>
-          </div>
-        </div>
+  <div class="min-h-screen">
 
-        <div class="flex-none grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-white/10 min-w-[260px]">
-          <div class="bg-white/5 px-3 py-2.5">
-            <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Role</p>
-            <p class="text-white font-semibold text-xs">UX + Frontend</p>
-          </div>
-          <div class="bg-white/5 px-3 py-2.5">
-            <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Domain</p>
-            <p class="text-white font-semibold text-xs">Healthcare</p>
-          </div>
-          <div class="bg-white/5 px-3 py-2.5">
-            <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Year</p>
-            <p class="text-white font-semibold text-xs">2024</p>
-          </div>
-          <div class="bg-white/5 px-3 py-2.5">
-            <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Pattern</p>
-            <p class="text-white font-semibold text-xs">Card &rarr; Drawer</p>
-          </div>
-          <div class="bg-white/5 px-3 py-2.5">
-            <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Focus</p>
-            <p class="text-white font-semibold text-xs">Clinical UX</p>
-          </div>
-          <div class="bg-white/5 px-3 py-2.5">
-            <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Type</p>
-            <p class="text-white font-semibold text-xs">Redesign</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Key decisions row -->
-      <div class="mt-10 pt-8 border-t border-white/10 grid grid-cols-3 gap-6">
-        <div class="flex gap-3">
-          <div class="flex-none w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300"><i data-feather="layers" class="w-4 h-4"></i></div>
-          <div>
-            <p class="font-semibold text-white mb-0.5 text-[13px]">Cards over tables</p>
-            <p class="text-blue-300 leading-relaxed text-xs">Progressive disclosure collapses 10+ concerns into scannable groups — expand only what the visit needs.</p>
-          </div>
-        </div>
-        <div class="flex gap-3">
-          <div class="flex-none w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300"><i data-feather="eye" class="w-4 h-4"></i></div>
-          <div>
-            <p class="font-semibold text-white mb-0.5 text-[13px]">Non-interrupting drawer</p>
-            <p class="text-blue-300 leading-relaxed text-xs">Goal detail slides in beside the list, not over it. Clinicians keep spatial context while reading more.</p>
-          </div>
-        </div>
-        <div class="flex gap-3">
-          <div class="flex-none w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300"><i data-feather="shield" class="w-4 h-4"></i></div>
-          <div>
-            <p class="font-semibold text-white mb-0.5 text-[13px]">Safety-first anchoring</p>
-            <p class="text-blue-300 leading-relaxed text-xs">Patient identity is permanently visible. A 2-second glance prevents wrong-patient medication errors.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Design Evolution section -->
-  <div class="bg-white border-t border-gray-100">
-    <div class="max-w-7xl mx-auto px-8 py-14">
-      <div class="mb-10 flex items-end justify-between">
-        <div>
-          <p class="text-xs font-semibold text-[#0065a3] uppercase tracking-widest mb-2">Design Evolution</p>
-          <h2 class="font-bold text-gray-900 text-[28px] leading-[1.2]">Before &rarr; Now</h2>
-          <p class="text-gray-500 mt-2 max-w-lg text-[14px]">
-            The original screen was a dense data table. Every change below was driven by a specific clinical workflow problem — not aesthetics.
-          </p>
-        </div>
-        <div class="flex items-center gap-6 text-sm text-gray-500 pb-1">
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-gray-200"></span> Before</span>
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-[#0065a3]"></span> Now</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-6 mb-12">
-        <!-- Before -->
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">BEFORE</span>
-            <span class="text-gray-400 text-xs">Original EMR table view</span>
-          </div>
-          <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style="filter: grayscale(0.4) contrast(0.95);">
-            <div class="bg-[#dde4ed] px-3 py-1.5 border-b border-gray-300 flex items-center gap-1">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+    <!-- Hero header -->
+    <div class="bg-[#0f2744] text-white">
+      <div class="max-w-7xl mx-auto px-8 py-12">
+        <div class="flex items-start justify-between gap-8">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xs font-semibold text-blue-300 uppercase tracking-widest">Case Study</span>
+              <span class="text-blue-600">&middot;</span>
+              <span class="text-xs text-blue-300">Healthcare EMR Redesign</span>
             </div>
-            <div class="p-4 bg-white">
-              <p class="font-bold text-gray-900 mb-3 text-[16px]" style="font-family: Tahoma, sans-serif;">Care plan</p>
-              <div class="flex gap-4 border-b border-gray-200 mb-3 pb-1">
-                <span class="text-xs pb-1 font-bold text-gray-900 border-b-2 border-[#0065a3]">Health Concerns</span>
-                <span class="text-xs pb-1 text-[#0065a3]">Goals and Activities</span>
-                <span class="text-xs pb-1 text-[#0065a3]">Strengths</span>
-              </div>
-              <div class="rounded-lg overflow-hidden border border-gray-300 text-left text-[11px]" style="font-family: Arial, sans-serif;">
-                <div class="grid bg-[#eaeaea] border-b border-gray-300" style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
-                  <div class="px-3 py-2 font-black text-gray-800 border-r border-gray-300">Description</div>
-                  <div class="px-3 py-2 font-black text-gray-800 border-r border-gray-300">Status</div>
-                  <div class="px-3 py-2 font-black text-gray-800 border-r border-gray-300">Priority</div>
-                  <div class="px-3 py-2 font-black text-gray-800">Target Date</div>
-                </div>
-                <div class="flex items-center gap-2 px-3 py-2 bg-[#eaeaea] border-b border-gray-200">
-                  <span class="text-gray-500">▾</span><span class="font-bold text-gray-800">Health Concern:</span><span class="text-gray-700">Diabetes Type 1</span>
-                </div>
-                <div class="grid border-b border-gray-100 hover:bg-gray-50" style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-800"><span class="font-bold">Goal:</span> Maintain healthy blood glucose</div>
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-700">In Progress</div>
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-700">High</div>
-                  <div class="px-3 py-2 text-gray-700">Mar 12, 2022</div>
-                </div>
-                <div class="grid border-b border-gray-100 hover:bg-gray-50" style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-800"><span class="font-bold">Goal:</span> Fasting blood sugar test</div>
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-700">In Progress</div>
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-700">High</div>
-                  <div class="px-3 py-2 text-gray-700">Mar 12, 2022</div>
-                </div>
-                <div class="grid border-b border-gray-100 hover:bg-gray-50" style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-800"><span class="font-bold">Long Term Goal:</span> Healthy eating</div>
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-700">In Progress</div>
-                  <div class="px-3 py-2 border-r border-gray-100 text-gray-700">High</div>
-                  <div class="px-3 py-2 text-gray-700">Mar 12, 2022</div>
-                </div>
-                
-                <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-[10px]">
-                  <span class="text-gray-400">▶</span><span class="font-bold text-gray-600">Health Concern:</span><span class="text-gray-500">Type 2 Diabetes prevention</span>
-                </div>
-                <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-[10px]">
-                  <span class="text-gray-400">▶</span><span class="font-bold text-gray-600">Health Concern:</span><span class="text-gray-500">Hypertension management</span>
-                </div>
-                <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-[10px]">
-                  <span class="text-gray-400">▶</span><span class="font-bold text-gray-600">Health Concern:</span><span class="text-gray-500">Weight management</span>
-                </div>
-              </div>
+            <h1 class="font-bold text-white mb-3 text-4xl leading-tight">Care Plan Module</h1>
+            <p class="text-blue-200 max-w-xl leading-relaxed mb-5 text-[15px]">
+              A reimagined clinical care plan experience — replacing a dense, non-interactive data table with
+              a card-based system built around how clinicians actually think during a visit.
+            </p>
+            <div class="flex items-center gap-3 flex-wrap">
+              <span
+                class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-100 border border-white/15 text-xs"><i
+                  data-feather="code" class="w-3 h-3"></i>Vanilla HTML/JS</span>
+              <span
+                class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-100 border border-white/15 text-xs"><i
+                  data-feather="pen-tool" class="w-3 h-3"></i>Tailwind CSS</span>
+            </div>
+          </div>
+
+          <div
+            class="flex-none grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-white/10 min-w-[260px]">
+            <div class="bg-white/5 px-3 py-2.5">
+              <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Role</p>
+              <p class="text-white font-semibold text-xs">UX</p>
+            </div>
+            <div class="bg-white/5 px-3 py-2.5">
+              <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Domain</p>
+              <p class="text-white font-semibold text-xs">Healthcare</p>
+            </div>
+            <div class="bg-white/5 px-3 py-2.5">
+              <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Year</p>
+              <p class="text-white font-semibold text-xs">2024</p>
+            </div>
+            <div class="bg-white/5 px-3 py-2.5">
+              <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Pattern</p>
+              <p class="text-white font-semibold text-xs">Card &rarr; Drawer</p>
+            </div>
+            <div class="bg-white/5 px-3 py-2.5">
+              <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Focus</p>
+              <p class="text-white font-semibold text-xs">Clinical UX</p>
+            </div>
+            <div class="bg-white/5 px-3 py-2.5">
+              <p class="text-blue-400 mb-0.5 text-[10px] font-semibold uppercase tracking-wider">Type</p>
+              <p class="text-white font-semibold text-xs">Redesign</p>
             </div>
           </div>
         </div>
 
-        <!-- Now -->
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#0065a3] text-white">NOW</span>
-            <span class="text-gray-400 text-xs">Redesigned card + drawer system</span>
-          </div>
-          <div class="rounded-2xl overflow-hidden border border-[#0065a3]/20 shadow-md">
-            <div class="bg-[#0f2744] px-3 py-1.5 flex items-center gap-1">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+        <!-- Key decisions row -->
+        <div class="mt-10 pt-8 border-t border-white/10 grid grid-cols-3 gap-6">
+          <div class="flex gap-3">
+            <div class="flex-none w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300"><i
+                data-feather="layers" class="w-4 h-4"></i></div>
+            <div>
+              <p class="font-semibold text-white mb-0.5 text-[13px]">Cards over tables</p>
+              <p class="text-blue-300 leading-relaxed text-xs">Progressive disclosure collapses 10+ concerns into
+                scannable groups — expand only what the visit needs.</p>
             </div>
-            <div class="p-4 bg-[#f7f9fb]">
-              <p class="font-bold text-gray-900 mb-3 text-[16px]" style="font-family: Tahoma, sans-serif;">Care plan</p>
-              <div class="flex gap-4 border-b border-gray-200 mb-3 pb-1">
-                <span class="text-xs pb-1 font-bold text-gray-900 border-b-2 border-[#0065a3]">Health Concerns</span>
-                <span class="text-xs pb-1 text-[#0065a3]">Goals and Activities</span>
-                <span class="text-xs pb-1 text-[#0065a3]">Strengths</span>
-              </div>
-              <div class="space-y-2 text-[11px]" style="font-family: Inter, Arial, sans-serif;">
-                
-                <div class="rounded-xl border border-[#0065a3]/30 overflow-hidden shadow-sm">
-                  <div class="flex items-center gap-2 px-3 py-2 bg-[#eef4fa]">
-                    <span class="text-[#0065a3]">▾</span>
-                    <span class="flex-1 text-gray-900"><span class="font-bold">Health Concern:</span> Diabetes Type 1</span>
-                    <span class="px-2 py-0.5 text-xs bg-[#0065a3] text-white rounded">View Details</span>
-                  </div>
-                  <div class="p-2 space-y-1.5 bg-white">
-                    <div class="rounded-lg border border-l-4 px-3 py-2 bg-white border-gray-200 border-l-red-500">
-                      <p class="text-gray-900 mb-1"><span class="font-bold text-[#0065a3]">Goal:</span> Maintain healthy blood glucose</p>
-                      <div class="flex items-center justify-between">
-                        <div class="flex gap-3 text-gray-600">
-                          <span><span class="text-gray-400">Status:</span> <b>In Progress</b></span>
-                          <span><span class="text-gray-400">Priority:</span> <b>High</b></span>
-                          <span class="text-green-700 flex items-center gap-1"><i data-feather="trending-up" class="w-2 h-2"></i> Progressing</span>
-                        </div>
-                        <div class="flex gap-1">
-                          <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">View Details</span>
-                          <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">Modify</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="rounded-lg border border-l-4 px-3 py-2 bg-[#edf8fd] border-[#b8e0f5] border-l-red-500">
-                      <p class="text-gray-900 mb-1"><span class="font-bold text-[#0065a3]">Goal:</span> Fasting blood sugar test <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px]">Overdue</span></p>
-                      <div class="flex items-center justify-between mt-1">
-                        <div class="flex gap-3 text-gray-600">
-                          <span><span class="text-gray-400">Status:</span> <b>In Progress</b></span>
-                          <span><span class="text-gray-400">Priority:</span> <b>High</b></span>
-                          <span class="text-green-700 flex items-center gap-1"><i data-feather="trending-up" class="w-2 h-2"></i> Progressing</span>
-                        </div>
-                        <div class="flex gap-1">
-                          <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">View Details</span>
-                          <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">Modify</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="rounded-lg border border-l-4 px-3 py-2 bg-white border-gray-200 border-l-red-500">
-                      <p class="text-gray-900 mb-1"><span class="font-bold text-[#0065a3]">Long Term Goal:</span> Healthy eating</p>
-                      <div class="flex items-center justify-between">
-                        <div class="flex gap-3 text-gray-600">
-                          <span><span class="text-gray-400">Status:</span> <b>In Progress</b></span>
-                          <span><span class="text-gray-400">Priority:</span> <b>High</b></span>
-                          <span class="text-red-600 flex items-center gap-1"><i data-feather="trending-down" class="w-2 h-2"></i> Regressing</span>
-                        </div>
-                        <div class="flex gap-1">
-                          <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">View Details</span>
-                          <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">Modify</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                  <div class="flex items-center gap-2 px-3 py-2 bg-gray-50">
-                    <span class="text-gray-400 text-xs">▶</span>
-                    <span class="flex-1 text-gray-800"><span class="font-bold">Health Concern:</span> Type 2 Diabetes prevention</span>
-                    <span class="px-2 py-0.5 text-xs bg-[#595e62] text-white rounded">View Details</span>
-                  </div>
-                </div>
-                <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                  <div class="flex items-center gap-2 px-3 py-2 bg-gray-50">
-                    <span class="text-gray-400 text-xs">▶</span>
-                    <span class="flex-1 text-gray-800"><span class="font-bold">Health Concern:</span> Hypertension management</span>
-                    <span class="px-2 py-0.5 text-xs bg-[#595e62] text-white rounded">View Details</span>
-                  </div>
-                </div>
-                
-              </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="flex-none w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300"><i
+                data-feather="eye" class="w-4 h-4"></i></div>
+            <div>
+              <p class="font-semibold text-white mb-0.5 text-[13px]">Non-interrupting drawer</p>
+              <p class="text-blue-300 leading-relaxed text-xs">Goal detail slides in beside the list, not over it.
+                Clinicians keep spatial context while reading more.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="flex-none w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300"><i
+                data-feather="shield" class="w-4 h-4"></i></div>
+            <div>
+              <p class="font-semibold text-white mb-0.5 text-[13px]">Safety-first anchoring</p>
+              <p class="text-blue-300 leading-relaxed text-xs">Patient identity is permanently visible. A 2-second
+                glance prevents wrong-patient medication errors.</p>
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Change cards -->
-      <div class="grid grid-cols-3 gap-4">
-        
-        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#0065a3] text-[10px]">1</span>
-            <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#0065a3]/15">
-              <i data-feather="layers" class="w-3 h-3 text-[#0065a3]"></i>
-            </div>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
-              <span class="text-xs text-gray-500 line-through">Flat data table — 6 columns always visible</span>
-            </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#0065a3]">Now</span>
-              <span class="text-xs font-medium text-gray-800">Card groups — reveal only what you need</span>
-            </div>
-          </div>
-          <p class="text-gray-500 leading-relaxed text-[11px]">Clinicians visiting 20+ patients/day can't afford to parse dense grids. Cards let the eye land on one concern at a time.</p>
-        </div>
-
-        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#7c3aed] text-[10px]">2</span>
-            <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#7c3aed]/15">
-              <i data-feather="arrow-right" class="w-3 h-3 text-[#7c3aed]"></i>
-            </div>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
-              <span class="text-xs text-gray-500 line-through">No grouping — all goals in one flat list</span>
-            </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#7c3aed]">Now</span>
-              <span class="text-xs font-medium text-gray-800">Goals nested inside their Health Concern</span>
-            </div>
-          </div>
-          <p class="text-gray-500 leading-relaxed text-[11px]">A goal without its parent concern is clinically meaningless. Nesting restores the natural hierarchy of a care plan.</p>
-        </div>
-
-        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#0d9488] text-[10px]">3</span>
-            <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#0d9488]/15">
-              <i data-feather="eye" class="w-3 h-3 text-[#0d9488]"></i>
-            </div>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
-              <span class="text-xs text-gray-500 line-through">Status/Priority as plain text in columns</span>
-            </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#0d9488]">Now</span>
-              <span class="text-xs font-medium text-gray-800">Labeled inline: Status &middot; Priority &middot; Progression</span>
-            </div>
-          </div>
-          <p class="text-gray-500 leading-relaxed text-[11px]">Column-scanning breaks flow. Inline labels keep all metadata on one reading line per goal — no eye travel across the row.</p>
-        </div>
-
-        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#dc2626] text-[10px]">4</span>
-            <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#dc2626]/15">
-              <i data-feather="shield" class="w-3 h-3 text-[#dc2626]"></i>
-            </div>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
-              <span class="text-xs text-gray-500 line-through">No priority-based visual differentiation</span>
-            </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#dc2626]">Now</span>
-              <span class="text-xs font-medium text-gray-800">Left border colored by priority (High = red)</span>
-            </div>
-          </div>
-          <p class="text-gray-500 leading-relaxed text-[11px]">Preattentive attribute — clinicians spot high-priority items before reading a single word.</p>
-        </div>
-
-        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#16a34a] text-[10px]">5</span>
-            <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#16a34a]/15">
-              <i data-feather="trending-up" class="w-3 h-3 text-[#16a34a]"></i>
-            </div>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
-              <span class="text-xs text-gray-500 line-through">Clicking opens a full new page/modal</span>
-            </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#16a34a]">Now</span>
-              <span class="text-xs font-medium text-gray-800">HC detail slides in beside the list</span>
-            </div>
-          </div>
-          <p class="text-gray-500 leading-relaxed text-[11px]">Spatial context is preserved. The clinician can still see all concerns while reading the detail panel.</p>
-        </div>
-
-        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#d97706] text-[10px]">6</span>
-            <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#d97706]/15">
-              <i data-feather="check" class="w-3 h-3 text-[#d97706]"></i>
-            </div>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
-              <span class="text-xs text-gray-500 line-through">Single action column — no inline modify</span>
-            </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#d97706]">Now</span>
-              <span class="text-xs font-medium text-gray-800">View Details + Modify on every goal row</span>
-            </div>
-          </div>
-          <p class="text-gray-500 leading-relaxed text-[11px]">Actions co-located with data = zero hunting. Reduces the number of clicks for the most frequent workflows.</p>
-        </div>
-        
-      </div>
-    </div>
-  </div>
-
-  <!-- Annotated UI -->
-  <div class="py-10" id="interactive-demo">
-    <div class="mb-6 max-w-7xl mx-auto px-8 flex items-center justify-between">
-      <div>
-        <h2 class="font-bold text-gray-900 mb-1 text-lg">Design anatomy</h2>
-        <p class="text-gray-500 text-[13px]">Hover a numbered callout or a description card to highlight the corresponding element.</p>
-      </div>
-      <div class="flex items-center gap-1.5 text-gray-400 text-xs">
-        <div class="w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center text-white text-[8px]">1</div>
-        <span>= annotation marker</span>
       </div>
     </div>
 
-    <div class="flex flex-col gap-6">
-      
-      <!-- Fake UI Container -->
-      <div class="relative mx-4 border-2 border-dashed border-[#e5383b] rounded-2xl p-2.5">
-        <div class="absolute -top-3.5 left-6 px-3 py-0.5 text-white text-xs font-semibold rounded-full z-20 bg-[#e5383b] tracking-wide">
-          Care Plan Module &middot; Redesigned UI
+    <!-- Design Evolution section -->
+    <div class="bg-white border-t border-gray-100">
+      <div class="max-w-7xl mx-auto px-8 py-14">
+        <div class="mb-10 flex items-end justify-between">
+          <div>
+            <p class="text-xs font-semibold text-[#0065a3] uppercase tracking-widest mb-2">Design Evolution</p>
+            <h2 class="font-bold text-gray-900 text-[28px] leading-[1.2]">Before &rarr; Now</h2>
+            <p class="text-gray-500 mt-2 max-w-lg text-[14px]">
+              The original screen was a dense data table. Every change below was driven by a specific clinical workflow
+              problem — not aesthetics.
+            </p>
+          </div>
+          <div class="flex items-center gap-6 text-sm text-gray-500 pb-1">
+            <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-gray-200"></span>
+              Before</span>
+            <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-[#0065a3]"></span>
+              Now</span>
+          </div>
         </div>
 
-        <div class="w-full rounded-xl overflow-hidden shadow-2xl border border-gray-200/60 relative" id="emr-container">
-          
-          <!-- MAC CHROME & CONTEXT -->
-          <div class="flex items-center justify-between px-5 py-2 bg-[#0f2744]">
-            <div class="flex items-center gap-3">
-              <span class="text-xs font-semibold text-white tracking-wide">Care Plan Module</span>
-              <span class="text-[#4a7ab5] text-xs">·</span>
-              <span class="text-xs text-[#7fa8d0]">Healthcare EMR · Patient Anderson, Lyn · 72 y/o · Female</span>
+        <div class="grid grid-cols-2 gap-6 mb-12">
+          <!-- Before -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">BEFORE</span>
+              <span class="text-gray-400 text-xs">Original EMR table view</span>
             </div>
-            <span class="text-[10px] text-[#4a7ab5] flex items-center gap-1.5">
-              <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-400"></span>
-              Live interactive prototype — hover numbered markers to highlight elements
-            </span>
+            <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
+              style="filter: grayscale(0.4) contrast(0.95);">
+              <div class="bg-[#dde4ed] px-3 py-1.5 border-b border-gray-300 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+              </div>
+              <div class="p-4 bg-white">
+                <p class="font-bold text-gray-900 mb-3 text-[16px]" style="font-family: Tahoma, sans-serif;">Care plan
+                </p>
+                <div class="flex gap-4 border-b border-gray-200 mb-3 pb-1">
+                  <span class="text-xs pb-1 font-bold text-gray-900 border-b-2 border-[#0065a3]">Health Concerns</span>
+                  <span class="text-xs pb-1 text-[#0065a3]">Goals and Activities</span>
+                  <span class="text-xs pb-1 text-[#0065a3]">Strengths</span>
+                </div>
+                <div class="rounded-lg overflow-hidden border border-gray-300 text-left text-[11px]"
+                  style="font-family: Arial, sans-serif;">
+                  <div class="grid bg-[#eaeaea] border-b border-gray-300"
+                    style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
+                    <div class="px-3 py-2 font-black text-gray-800 border-r border-gray-300">Description</div>
+                    <div class="px-3 py-2 font-black text-gray-800 border-r border-gray-300">Status</div>
+                    <div class="px-3 py-2 font-black text-gray-800 border-r border-gray-300">Priority</div>
+                    <div class="px-3 py-2 font-black text-gray-800">Target Date</div>
+                  </div>
+                  <div class="flex items-center gap-2 px-3 py-2 bg-[#eaeaea] border-b border-gray-200">
+                    <span class="text-gray-500">▾</span><span class="font-bold text-gray-800">Health
+                      Concern:</span><span class="text-gray-700">Diabetes Type 1</span>
+                  </div>
+                  <div class="grid border-b border-gray-100 hover:bg-gray-50"
+                    style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-800"><span class="font-bold">Goal:</span>
+                      Maintain healthy blood glucose</div>
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-700">In Progress</div>
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-700">High</div>
+                    <div class="px-3 py-2 text-gray-700">Mar 12, 2022</div>
+                  </div>
+                  <div class="grid border-b border-gray-100 hover:bg-gray-50"
+                    style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-800"><span class="font-bold">Goal:</span>
+                      Fasting blood sugar test</div>
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-700">In Progress</div>
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-700">High</div>
+                    <div class="px-3 py-2 text-gray-700">Mar 12, 2022</div>
+                  </div>
+                  <div class="grid border-b border-gray-100 hover:bg-gray-50"
+                    style="grid-template-columns: 2fr 1fr 1fr 1.2fr;">
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-800"><span class="font-bold">Long Term
+                        Goal:</span> Healthy eating</div>
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-700">In Progress</div>
+                    <div class="px-3 py-2 border-r border-gray-100 text-gray-700">High</div>
+                    <div class="px-3 py-2 text-gray-700">Mar 12, 2022</div>
+                  </div>
+
+                  <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-[10px]">
+                    <span class="text-gray-400">▶</span><span class="font-bold text-gray-600">Health
+                      Concern:</span><span class="text-gray-500">Type 2 Diabetes prevention</span>
+                  </div>
+                  <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-[10px]">
+                    <span class="text-gray-400">▶</span><span class="font-bold text-gray-600">Health
+                      Concern:</span><span class="text-gray-500">Hypertension management</span>
+                  </div>
+                  <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-[10px]">
+                    <span class="text-gray-400">▶</span><span class="font-bold text-gray-600">Health
+                      Concern:</span><span class="text-gray-500">Weight management</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="flex items-center gap-1.5 px-4 py-2.5 bg-[#ececec] border-b border-gray-300">
-            <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
-            <div class="flex-1 mx-4 bg-white rounded border border-gray-300 px-3 py-0.5 flex items-center gap-2">
-              <span class="text-gray-400" style="font-size: 10px;">🔒</span>
-              <span class="text-gray-500" style="font-size: 11px;">emr.hospital.internal / patient / anderson-lyn / care-plan</span>
+          <!-- Now -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#0065a3] text-white">NOW</span>
+              <span class="text-gray-400 text-xs">Redesigned card + drawer system</span>
+            </div>
+            <div class="rounded-2xl overflow-hidden border border-[#0065a3]/20 shadow-md">
+              <div class="bg-[#0f2744] px-3 py-1.5 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+              </div>
+              <div class="p-4 bg-[#f7f9fb]">
+                <p class="font-bold text-gray-900 mb-3 text-[16px]" style="font-family: Tahoma, sans-serif;">Care plan
+                </p>
+                <div class="flex gap-4 border-b border-gray-200 mb-3 pb-1">
+                  <span class="text-xs pb-1 font-bold text-gray-900 border-b-2 border-[#0065a3]">Health Concerns</span>
+                  <span class="text-xs pb-1 text-[#0065a3]">Goals and Activities</span>
+                  <span class="text-xs pb-1 text-[#0065a3]">Strengths</span>
+                </div>
+                <div class="space-y-2 text-[11px]" style="font-family: Inter, Arial, sans-serif;">
+
+                  <div class="rounded-xl border border-[#0065a3]/30 overflow-hidden shadow-sm">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-[#eef4fa]">
+                      <span class="text-[#0065a3]">▾</span>
+                      <span class="flex-1 text-gray-900"><span class="font-bold">Health Concern:</span> Diabetes Type
+                        1</span>
+                      <span class="px-2 py-0.5 text-xs bg-[#0065a3] text-white rounded">View Details</span>
+                    </div>
+                    <div class="p-2 space-y-1.5 bg-white">
+                      <div class="rounded-lg border border-l-4 px-3 py-2 bg-white border-gray-200 border-l-red-500">
+                        <p class="text-gray-900 mb-1"><span class="font-bold text-[#0065a3]">Goal:</span> Maintain
+                          healthy blood glucose</p>
+                        <div class="flex items-center justify-between">
+                          <div class="flex gap-3 text-gray-600">
+                            <span><span class="text-gray-400">Status:</span> <b>In Progress</b></span>
+                            <span><span class="text-gray-400">Priority:</span> <b>High</b></span>
+                            <span class="text-green-700 flex items-center gap-1"><i data-feather="trending-up"
+                                class="w-2 h-2"></i> Progressing</span>
+                          </div>
+                          <div class="flex gap-1">
+                            <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">View
+                              Details</span>
+                            <span
+                              class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">Modify</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        class="rounded-lg border border-l-4 px-3 py-2 bg-[#edf8fd] border-[#b8e0f5] border-l-red-500">
+                        <p class="text-gray-900 mb-1"><span class="font-bold text-[#0065a3]">Goal:</span> Fasting blood
+                          sugar test <span
+                            class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px]">Overdue</span>
+                        </p>
+                        <div class="flex items-center justify-between mt-1">
+                          <div class="flex gap-3 text-gray-600">
+                            <span><span class="text-gray-400">Status:</span> <b>In Progress</b></span>
+                            <span><span class="text-gray-400">Priority:</span> <b>High</b></span>
+                            <span class="text-green-700 flex items-center gap-1"><i data-feather="trending-up"
+                                class="w-2 h-2"></i> Progressing</span>
+                          </div>
+                          <div class="flex gap-1">
+                            <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">View
+                              Details</span>
+                            <span
+                              class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">Modify</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="rounded-lg border border-l-4 px-3 py-2 bg-white border-gray-200 border-l-red-500">
+                        <p class="text-gray-900 mb-1"><span class="font-bold text-[#0065a3]">Long Term Goal:</span>
+                          Healthy eating</p>
+                        <div class="flex items-center justify-between">
+                          <div class="flex gap-3 text-gray-600">
+                            <span><span class="text-gray-400">Status:</span> <b>In Progress</b></span>
+                            <span><span class="text-gray-400">Priority:</span> <b>High</b></span>
+                            <span class="text-red-600 flex items-center gap-1"><i data-feather="trending-down"
+                                class="w-2 h-2"></i> Regressing</span>
+                          </div>
+                          <div class="flex gap-1">
+                            <span class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">View
+                              Details</span>
+                            <span
+                              class="px-2 py-0.5 rounded bg-[#eaeaea] border border-gray-300 text-gray-700">Modify</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50">
+                      <span class="text-gray-400 text-xs">▶</span>
+                      <span class="flex-1 text-gray-800"><span class="font-bold">Health Concern:</span> Type 2 Diabetes
+                        prevention</span>
+                      <span class="px-2 py-0.5 text-xs bg-[#595e62] text-white rounded">View Details</span>
+                    </div>
+                  </div>
+                  <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50">
+                      <span class="text-gray-400 text-xs">▶</span>
+                      <span class="flex-1 text-gray-800"><span class="font-bold">Health Concern:</span> Hypertension
+                        management</span>
+                      <span class="px-2 py-0.5 text-xs bg-[#595e62] text-white rounded">View Details</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- RECONSTRUCTED EMR UI -->
-          <div class="relative h-[720px]">
-            <div class="emr-overlay"></div>
-            
-            <div id="dots-container"></div>
-            
-            <div class="absolute inset-0 flex flex-col pointer-events-none select-none" style="font-family: Roboto, Arial, sans-serif; font-size: 12px;">
-              <!-- System Nav -->
-              <div class="flex-none bg-[#1a2b4a] text-white px-3 py-0.5 flex items-center justify-between min-h-[24px]">
-                <div class="flex items-center gap-3">
-                  <span class="text-[11px] text-gray-300">File</span><span class="text-[11px] text-gray-300">Edit</span><span class="text-[11px] text-gray-300">View</span><span class="text-[11px] text-gray-300">Patient</span><span class="text-[11px] text-gray-300">Chart</span><span class="text-[11px] text-gray-300">Links</span><span class="text-[11px] text-gray-300">Navigation</span><span class="text-[11px] text-gray-300">Help</span>
-                </div>
-                <span class="text-[11px] text-green-400">▲ UpToDate</span>
+        <!-- Change cards -->
+        <div class="grid grid-cols-3 gap-4">
+
+          <div
+            class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#0065a3] text-[10px]">1</span>
+              <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#0065a3]/15">
+                <i data-feather="layers" class="w-3 h-3 text-[#0065a3]"></i>
               </div>
-              <!-- Quick links -->
-              <div class="flex-none bg-[#2c4a7c] px-2 py-0.5 overflow-hidden">
-                <div class="flex items-center gap-1">
-                  <span class="text-[10px] text-white bg-[#3d5a8a] px-1.5 py-0.5 rounded border border-[#4a6a9e] whitespace-nowrap">Care Compass</span>
-                  <span class="text-[10px] text-white bg-[#3d5a8a] px-1.5 py-0.5 rounded border border-[#4a6a9e] whitespace-nowrap">Clinical Leader Organizer</span>
-                  <span class="text-[10px] text-white bg-[#3d5a8a] px-1.5 py-0.5 rounded border border-[#4a6a9e] whitespace-nowrap">Quality Measures Summary</span>
-                </div>
+            </div>
+            <div class="space-y-1 mb-3">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
+                <span class="text-xs text-gray-500 line-through">Flat data table — 6 columns always visible</span>
               </div>
-              <!-- Toolbar -->
-              <div class="flex-none bg-[#dde4ed] px-2 py-0.5 border-b border-gray-300 overflow-hidden">
-                <div class="flex items-center gap-1">
-                  <span class="text-[10px] text-gray-700 px-1 whitespace-nowrap">Medication Administration</span>
-                  <span class="text-[10px] text-gray-700 px-1 whitespace-nowrap">Patient Education</span>
-                  <span class="text-[10px] text-gray-700 px-1 whitespace-nowrap">Discern Reporting</span>
-                </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#0065a3]">Now</span>
+                <span class="text-xs font-medium text-gray-800">Card groups — reveal only what you need</span>
               </div>
-              <!-- Patient bar -->
-              <div class="flex-none bg-[#f0f4f8] border-b border-gray-300 px-3 py-1.5">
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center gap-1.5">
-                    <div class="w-7 h-7 rounded-full bg-[#2c4a7c] flex items-center justify-center text-white text-[10px] font-bold">AL</div>
-                    <div>
-                      <div class="font-bold text-gray-900 text-xs">Anderson, Lyn</div>
-                      <div class="text-[10px] text-gray-500">Allergies: Sulpha Drug</div>
+            </div>
+            <p class="text-gray-500 leading-relaxed text-[11px]">Clinicians visiting 20+ patients/day can't afford to
+              parse dense grids. Cards let the eye land on one concern at a time.</p>
+          </div>
+
+          <div
+            class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#7c3aed] text-[10px]">2</span>
+              <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#7c3aed]/15">
+                <i data-feather="arrow-right" class="w-3 h-3 text-[#7c3aed]"></i>
+              </div>
+            </div>
+            <div class="space-y-1 mb-3">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
+                <span class="text-xs text-gray-500 line-through">No grouping — all goals in one flat list</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#7c3aed]">Now</span>
+                <span class="text-xs font-medium text-gray-800">Goals nested inside their Health Concern</span>
+              </div>
+            </div>
+            <p class="text-gray-500 leading-relaxed text-[11px]">A goal without its parent concern is clinically
+              meaningless. Nesting restores the natural hierarchy of a care plan.</p>
+          </div>
+
+          <div
+            class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#0d9488] text-[10px]">3</span>
+              <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#0d9488]/15">
+                <i data-feather="eye" class="w-3 h-3 text-[#0d9488]"></i>
+              </div>
+            </div>
+            <div class="space-y-1 mb-3">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
+                <span class="text-xs text-gray-500 line-through">Status/Priority as plain text in columns</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#0d9488]">Now</span>
+                <span class="text-xs font-medium text-gray-800">Labeled inline: Status &middot; Priority &middot;
+                  Progression</span>
+              </div>
+            </div>
+            <p class="text-gray-500 leading-relaxed text-[11px]">Column-scanning breaks flow. Inline labels keep all
+              metadata on one reading line per goal — no eye travel across the row.</p>
+          </div>
+
+          <div
+            class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#dc2626] text-[10px]">4</span>
+              <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#dc2626]/15">
+                <i data-feather="shield" class="w-3 h-3 text-[#dc2626]"></i>
+              </div>
+            </div>
+            <div class="space-y-1 mb-3">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
+                <span class="text-xs text-gray-500 line-through">No priority-based visual differentiation</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#dc2626]">Now</span>
+                <span class="text-xs font-medium text-gray-800">Left border colored by priority (High = red)</span>
+              </div>
+            </div>
+            <p class="text-gray-500 leading-relaxed text-[11px]">Preattentive attribute — clinicians spot high-priority
+              items before reading a single word.</p>
+          </div>
+
+          <div
+            class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#16a34a] text-[10px]">5</span>
+              <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#16a34a]/15">
+                <i data-feather="trending-up" class="w-3 h-3 text-[#16a34a]"></i>
+              </div>
+            </div>
+            <div class="space-y-1 mb-3">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
+                <span class="text-xs text-gray-500 line-through">Clicking opens a full new page/modal</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#16a34a]">Now</span>
+                <span class="text-xs font-medium text-gray-800">HC detail slides in beside the list</span>
+              </div>
+            </div>
+            <p class="text-gray-500 leading-relaxed text-[11px]">Spatial context is preserved. The clinician can still
+              see all concerns while reading the detail panel.</p>
+          </div>
+
+          <div
+            class="rounded-xl border border-gray-100 bg-gray-50 p-4 hover:shadow-md hover:border-gray-200 transition-all">
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                class="flex-none flex items-center justify-center w-6 h-6 rounded-full text-white font-bold bg-[#d97706] text-[10px]">6</span>
+              <div class="flex-none w-6 h-6 rounded-md flex items-center justify-center bg-[#d97706]/15">
+                <i data-feather="check" class="w-3 h-3 text-[#d97706]"></i>
+              </div>
+            </div>
+            <div class="space-y-1 mb-3">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Before</span>
+                <span class="text-xs text-gray-500 line-through">Single action column — no inline modify</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide shrink-0 text-[#d97706]">Now</span>
+                <span class="text-xs font-medium text-gray-800">View Details + Modify on every goal row</span>
+              </div>
+            </div>
+            <p class="text-gray-500 leading-relaxed text-[11px]">Actions co-located with data = zero hunting. Reduces
+              the number of clicks for the most frequent workflows.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotated UI -->
+    <div class="py-10" id="interactive-demo">
+      <div class="mb-6 max-w-7xl mx-auto px-8 flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900 mb-1 text-lg">Design anatomy</h2>
+          <p class="text-gray-500 text-[13px]">Hover a numbered callout or a description card to highlight the
+            corresponding element.</p>
+        </div>
+        <div class="flex items-center gap-1.5 text-gray-400 text-xs">
+          <div class="w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center text-white text-[8px]">1</div>
+          <span>= annotation marker</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-6">
+
+        <!-- Fake UI Container -->
+        <div class="relative mx-4 border-2 border-dashed border-[#e5383b] rounded-2xl p-2.5">
+          <div
+            class="absolute -top-3.5 left-6 px-3 py-0.5 text-white text-xs font-semibold rounded-full z-20 bg-[#e5383b] tracking-wide">
+            Care Plan Module &middot; Redesigned UI
+          </div>
+
+          <div class="w-full rounded-xl overflow-hidden shadow-2xl border border-gray-200/60 relative"
+            id="emr-container">
+
+            <!-- MAC CHROME & CONTEXT -->
+            <div class="flex items-center justify-between px-5 py-2 bg-[#0f2744]">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-white tracking-wide">Care Plan Module</span>
+                <span class="text-[#4a7ab5] text-xs">·</span>
+                <span class="text-xs text-[#7fa8d0]">Healthcare EMR · Patient Anderson, Lyn · 72 y/o · Female</span>
+              </div>
+              <span class="text-[10px] text-[#4a7ab5] flex items-center gap-1.5">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                Live interactive prototype — hover numbered markers to highlight elements
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1.5 px-4 py-2.5 bg-[#ececec] border-b border-gray-300">
+              <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
+              <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
+              <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
+              <div class="flex-1 mx-4 bg-white rounded border border-gray-300 px-3 py-0.5 flex items-center gap-2">
+                <span class="text-gray-400" style="font-size: 10px;">🔒</span>
+                <span class="text-gray-500" style="font-size: 11px;">emr.hospital.internal / patient / anderson-lyn /
+                  care-plan</span>
+              </div>
+            </div>
+
+            <!-- RECONSTRUCTED EMR UI -->
+            <div class="relative h-[720px]">
+              <div class="emr-overlay"></div>
+
+              <div id="dots-container"></div>
+
+              <div class="absolute inset-0 flex flex-col pointer-events-none select-none"
+                style="font-family: Roboto, Arial, sans-serif; font-size: 12px;">
+                <!-- System Nav -->
+                <div
+                  class="flex-none bg-[#1a2b4a] text-white px-3 py-0.5 flex items-center justify-between min-h-[24px]">
+                  <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-gray-300">File</span><span
+                      class="text-[11px] text-gray-300">Edit</span><span
+                      class="text-[11px] text-gray-300">View</span><span
+                      class="text-[11px] text-gray-300">Patient</span><span
+                      class="text-[11px] text-gray-300">Chart</span><span
+                      class="text-[11px] text-gray-300">Links</span><span
+                      class="text-[11px] text-gray-300">Navigation</span><span
+                      class="text-[11px] text-gray-300">Help</span>
+                  </div>
+                  <span class="text-[11px] text-green-400">▲ UpToDate</span>
+                </div>
+                <!-- Quick links -->
+                <div class="flex-none bg-[#2c4a7c] px-2 py-0.5 overflow-hidden">
+                  <div class="flex items-center gap-1">
+                    <span
+                      class="text-[10px] text-white bg-[#3d5a8a] px-1.5 py-0.5 rounded border border-[#4a6a9e] whitespace-nowrap">Care
+                      Compass</span>
+                    <span
+                      class="text-[10px] text-white bg-[#3d5a8a] px-1.5 py-0.5 rounded border border-[#4a6a9e] whitespace-nowrap">Clinical
+                      Leader Organizer</span>
+                    <span
+                      class="text-[10px] text-white bg-[#3d5a8a] px-1.5 py-0.5 rounded border border-[#4a6a9e] whitespace-nowrap">Quality
+                      Measures Summary</span>
+                  </div>
+                </div>
+                <!-- Toolbar -->
+                <div class="flex-none bg-[#dde4ed] px-2 py-0.5 border-b border-gray-300 overflow-hidden">
+                  <div class="flex items-center gap-1">
+                    <span class="text-[10px] text-gray-700 px-1 whitespace-nowrap">Medication Administration</span>
+                    <span class="text-[10px] text-gray-700 px-1 whitespace-nowrap">Patient Education</span>
+                    <span class="text-[10px] text-gray-700 px-1 whitespace-nowrap">Discern Reporting</span>
+                  </div>
+                </div>
+                <!-- Patient bar -->
+                <div class="flex-none bg-[#f0f4f8] border-b border-gray-300 px-3 py-1.5">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                      <div
+                        class="w-7 h-7 rounded-full bg-[#2c4a7c] flex items-center justify-center text-white text-[10px] font-bold">
+                        AL</div>
+                      <div>
+                        <div class="font-bold text-gray-900 text-xs">Anderson, Lyn</div>
+                        <div class="text-[10px] text-gray-500">Allergies: Sulpha Drug</div>
+                      </div>
+                    </div>
+                    <div class="h-6 w-px bg-gray-300"></div>
+                    <div class="text-[10px] text-gray-600 space-y-0.5">
+                      <div><span class="font-semibold">DOB:</span> 01/07/1949 &nbsp; <span
+                          class="font-semibold">Weight:</span> 68 kg</div>
+                    </div>
+                    <div class="h-6 w-px bg-gray-300"></div>
+                    <div class="text-[10px] text-gray-600 grid grid-cols-2 gap-x-4">
+                      <span><b>Age:</b> 72 yrs</span><span><b>FIN:</b> 0092048871</span>
+                      <span><b>Sex:</b> Female</span><span><b>MRN:</b> 0019452</span>
+                    </div>
+                    <div class="h-6 w-px bg-gray-300"></div>
+                    <div class="text-[10px] text-gray-600">
+                      <div><b>Care Team:</b> Callahan MD, Phyllis (Primary)</div>
                     </div>
                   </div>
-                  <div class="h-6 w-px bg-gray-300"></div>
-                  <div class="text-[10px] text-gray-600 space-y-0.5">
-                    <div><span class="font-semibold">DOB:</span> 01/07/1949 &nbsp; <span class="font-semibold">Weight:</span> 68 kg</div>
-                  </div>
-                  <div class="h-6 w-px bg-gray-300"></div>
-                  <div class="text-[10px] text-gray-600 grid grid-cols-2 gap-x-4">
-                    <span><b>Age:</b> 72 yrs</span><span><b>FIN:</b> 0092048871</span>
-                    <span><b>Sex:</b> Female</span><span><b>MRN:</b> 0019452</span>
-                  </div>
-                  <div class="h-6 w-px bg-gray-300"></div>
-                  <div class="text-[10px] text-gray-600">
-                    <div><b>Care Team:</b> Callahan MD, Phyllis (Primary)</div>
+                </div>
+                <!-- Workflow tabs -->
+                <div class="flex-none flex items-center bg-[#e8edf4] border-b border-gray-300 px-2 gap-0.5">
+                  <div
+                    class="flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t border border-b-0 bg-white border-gray-300 font-medium text-gray-900">
+                    Admission</div>
+                  <div
+                    class="flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t border border-b-0 bg-[#d0d8e6] border-gray-300 text-gray-500">
+                    Handoff Tool<span class="ml-0.5 text-gray-400">×</span></div>
+                  <div
+                    class="flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t border border-b-0 bg-[#d0d8e6] border-gray-300 text-gray-500">
+                    Discharge<span class="ml-0.5 text-gray-400">×</span></div>
+                  <div class="ml-auto flex items-center gap-1 pr-1 text-[10px] text-gray-500">
+                    <span>Full screen</span><span>Print</span><span>0 min ago</span>
                   </div>
                 </div>
-              </div>
-              <!-- Workflow tabs -->
-              <div class="flex-none flex items-center bg-[#e8edf4] border-b border-gray-300 px-2 gap-0.5">
-                <div class="flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t border border-b-0 bg-white border-gray-300 font-medium text-gray-900">Admission</div>
-                <div class="flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t border border-b-0 bg-[#d0d8e6] border-gray-300 text-gray-500">Handoff Tool<span class="ml-0.5 text-gray-400">×</span></div>
-                <div class="flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t border border-b-0 bg-[#d0d8e6] border-gray-300 text-gray-500">Discharge<span class="ml-0.5 text-gray-400">×</span></div>
-                <div class="ml-auto flex items-center gap-1 pr-1 text-[10px] text-gray-500">
-                  <span>Full screen</span><span>Print</span><span>0 min ago</span>
-                </div>
-              </div>
-              
-              <!-- Main Split -->
-              <div class="flex flex-1 min-h-0">
-                <!-- Sidebar -->
-                <div class="flex-none w-28 bg-[#2c4a7c] text-white overflow-hidden py-2">
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="file-text" class="w-3 h-3"></i> Chief Complaint</div>
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] bg-white text-[#2c4a7c] font-semibold"><i data-feather="clipboard" class="w-3 h-3"></i> Care Plan</div>
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="alert-triangle" class="w-3 h-3"></i> Problems</div>
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="activity" class="w-3 h-3"></i> Vital Signs</div>
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="folder" class="w-3 h-3"></i> Documents</div>
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="triangle" class="w-3 h-3"></i> Allergies</div>
-                  <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="sun" class="w-3 h-3"></i> Home Medications</div>
-                </div>
-                
-                <!-- Care Plan Application -->
-                <div class="flex-1 flex flex-col h-full bg-[#f7f9fb] pointer-events-auto">
-                  <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white">
-                    <h2 class="font-bold text-gray-900" style="font-family: Tahoma, sans-serif; font-size: 20px;">Care plan</h2>
-                    <div class="flex items-center gap-2">
-                      <button class="p-1.5 rounded border border-gray-300 bg-gradient-to-b from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-300 text-gray-700"><i data-feather="plus" class="w-3.5 h-3.5"></i></button>
-                      <button class="p-1.5 rounded border border-gray-300 bg-gradient-to-b from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-300 text-gray-700"><i data-feather="settings" class="w-3.5 h-3.5"></i></button>
+
+                <!-- Main Split -->
+                <div class="flex flex-1 min-h-0">
+                  <!-- Sidebar -->
+                  <div class="flex-none w-28 bg-[#2c4a7c] text-white overflow-hidden py-2">
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i
+                        data-feather="file-text" class="w-3 h-3"></i> Chief Complaint</div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] bg-white text-[#2c4a7c] font-semibold">
+                      <i data-feather="clipboard" class="w-3 h-3"></i> Care Plan</div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i
+                        data-feather="alert-triangle" class="w-3 h-3"></i> Problems</div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i
+                        data-feather="activity" class="w-3 h-3"></i> Vital Signs</div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="folder"
+                        class="w-3 h-3"></i> Documents</div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i
+                        data-feather="triangle" class="w-3 h-3"></i> Allergies</div>
+                    <div class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-gray-200"><i data-feather="sun"
+                        class="w-3 h-3"></i> Home Medications</div>
+                  </div>
+
+                  <!-- Care Plan Application -->
+                  <div class="flex-1 flex flex-col h-full bg-[#f7f9fb] pointer-events-auto">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white">
+                      <h2 class="font-bold text-gray-900" style="font-family: Tahoma, sans-serif; font-size: 20px;">Care
+                        plan</h2>
+                      <div class="flex items-center gap-2">
+                        <button
+                          class="p-1.5 rounded border border-gray-300 bg-gradient-to-b from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-300 text-gray-700"><i
+                            data-feather="plus" class="w-3.5 h-3.5"></i></button>
+                        <button
+                          class="p-1.5 rounded border border-gray-300 bg-gradient-to-b from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-300 text-gray-700"><i
+                            data-feather="settings" class="w-3.5 h-3.5"></i></button>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div class="flex border-b border-gray-200 px-5 bg-white flex-none">
-                    <div class="relative px-3 py-2 text-xs font-medium text-gray-900 font-bold border-b-2 border-[#0065a3]">Health Concerns</div>
-                    <div class="relative px-3 py-2 text-xs font-medium text-gray-500 hover:text-[#0065a3]">Goals and Activities</div>
-                    <div class="relative px-3 py-2 text-xs font-medium text-gray-500 hover:text-[#0065a3]">Strengths</div>
-                  </div>
-                  
-                  <div class="flex flex-1 min-h-0 overflow-hidden">
-                    <div class="flex-1 overflow-y-auto p-4 space-y-3 min-w-0">
-                      
-                      <!-- Expanded Card -->
-                      <div class="rounded-xl border border-[#0065a3]/50 shadow-lg ring-1 ring-[#0065a3]/10 overflow-hidden">
-                        <div class="flex items-center gap-2.5 px-4 py-3 bg-[#eef4fa]">
-                          <i data-feather="chevron-down" class="w-3.5 h-3.5 text-[#0065a3]"></i>
+
+                    <div class="flex border-b border-gray-200 px-5 bg-white flex-none">
+                      <div
+                        class="relative px-3 py-2 text-xs font-medium text-gray-900 font-bold border-b-2 border-[#0065a3]">
+                        Health Concerns</div>
+                      <div class="relative px-3 py-2 text-xs font-medium text-gray-500 hover:text-[#0065a3]">Goals and
+                        Activities</div>
+                      <div class="relative px-3 py-2 text-xs font-medium text-gray-500 hover:text-[#0065a3]">Strengths
+                      </div>
+                    </div>
+
+                    <div class="flex flex-1 min-h-0 overflow-hidden">
+                      <div class="flex-1 overflow-y-auto p-4 space-y-3 min-w-0">
+
+                        <!-- Expanded Card -->
+                        <div
+                          class="rounded-xl border border-[#0065a3]/50 shadow-lg ring-1 ring-[#0065a3]/10 overflow-hidden">
+                          <div class="flex items-center gap-2.5 px-4 py-3 bg-[#eef4fa]">
+                            <i data-feather="chevron-down" class="w-3.5 h-3.5 text-[#0065a3]"></i>
+                            <div class="flex-1 min-w-0">
+                              <p class="text-xs text-gray-400 font-medium leading-none mb-0.5">Health Concern</p>
+                              <p class="text-sm font-semibold text-gray-900 truncate">Type 2 Diabetes prevention</p>
+                            </div>
+                            <span
+                              class="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-[#0065a3]/10 text-[#0065a3]">3</span>
+                            <button
+                              class="flex-none px-3 py-1 text-xs font-medium rounded-md bg-[#0065a3] text-white">View
+                              Details</button>
+                          </div>
+                          <div class="p-3 space-y-2 border-t border-[#0065a3]/20 bg-white">
+
+                            <!-- Goal Row 1 -->
+                            <div
+                              class="rounded-lg border border-l-4 px-4 py-3 bg-white border-gray-200 border-l-red-500">
+                              <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1 min-w-0">
+                                  <div class="flex items-center gap-2 mb-0.5"><span
+                                      class="text-xs font-semibold text-[#0065a3]">Goal</span></div>
+                                  <p class="text-sm font-medium text-gray-900">Maintain healthy blood glucose</p>
+                                </div>
+                                <div class="flex-none flex flex-col items-end gap-0.5 text-right shrink-0">
+                                  <span class="text-xs"><span class="text-gray-400 mr-1">Target:</span><span
+                                      class="font-semibold text-gray-900">Mar 12, 2022</span></span>
+                                  <span class="text-[10px] text-gray-400">Feb 22, 2022 06:42</span>
+                                </div>
+                              </div>
+                              <div class="flex items-center justify-between mt-2">
+                                <div class="flex items-center gap-4 text-xs text-gray-700">
+                                  <span><span class="text-gray-400 mr-1">Status:</span><span
+                                      class="font-semibold text-gray-900">In Progress</span></span>
+                                  <span><span class="text-gray-400 mr-1">Priority:</span><span
+                                      class="font-semibold text-red-600">High</span></span>
+                                  <span class="font-semibold text-green-700 flex items-center gap-1"><i
+                                      data-feather="trending-up" class="w-3 h-3"></i> Progressing</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                  <button
+                                    class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">View
+                                    Details</button>
+                                  <button
+                                    class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">Modify</button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Goal Row 2 (Highlighted) -->
+                            <div
+                              class="rounded-lg border border-l-4 px-4 py-3 bg-[#edf8fd] border-[#b8e0f5] border-l-red-500">
+                              <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1 min-w-0">
+                                  <div class="flex items-center gap-2 mb-0.5"><span
+                                      class="text-xs font-semibold text-[#0065a3]">Goal</span> <span
+                                      class="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px]"><i
+                                        data-feather="clock" class="w-2.5 h-2.5"></i> Overdue</span></div>
+                                  <p class="text-sm font-medium text-gray-900">Fasting blood sugar test</p>
+                                </div>
+                                <div class="flex-none flex flex-col items-end gap-0.5 text-right shrink-0">
+                                  <span class="text-xs"><span class="text-gray-400 mr-1">Target:</span><span
+                                      class="font-semibold text-red-600">Mar 12, 2022</span></span>
+                                  <span class="text-[10px] text-gray-400">Feb 22, 2022 06:42</span>
+                                </div>
+                              </div>
+                              <div class="flex items-center justify-between mt-2">
+                                <div class="flex items-center gap-4 text-xs text-gray-700">
+                                  <span><span class="text-gray-400 mr-1">Status:</span><span
+                                      class="font-semibold text-gray-900">In Progress</span></span>
+                                  <span><span class="text-gray-400 mr-1">Priority:</span><span
+                                      class="font-semibold text-red-600">High</span></span>
+                                  <span class="font-semibold text-green-700 flex items-center gap-1"><i
+                                      data-feather="trending-up" class="w-3 h-3"></i> Progressing</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                  <button
+                                    class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">View
+                                    Details</button>
+                                  <button
+                                    class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">Modify</button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Goal Row 3 -->
+                            <div
+                              class="rounded-lg border border-l-4 px-4 py-3 bg-white border-gray-200 border-l-red-500">
+                              <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1 min-w-0">
+                                  <div class="flex items-center gap-2 mb-0.5"><span
+                                      class="text-xs font-semibold text-[#0065a3]">Long Term Goal</span></div>
+                                  <p class="text-sm font-medium text-gray-900">Maintain healthy blood glucose long name
+                                    for Goal goes here</p>
+                                </div>
+                                <div class="flex-none flex flex-col items-end gap-0.5 text-right shrink-0">
+                                  <span class="text-xs"><span class="text-gray-400 mr-1">Target:</span><span
+                                      class="font-semibold text-gray-900">Mar 12, 2022</span></span>
+                                  <span class="text-[10px] text-gray-400">Feb 22, 2022 06:42</span>
+                                </div>
+                              </div>
+                              <div class="flex items-center justify-between mt-2">
+                                <div class="flex items-center gap-4 text-xs text-gray-700">
+                                  <span><span class="text-gray-400 mr-1">Status:</span><span
+                                      class="font-semibold text-gray-900">In Progress</span></span>
+                                  <span><span class="text-gray-400 mr-1">Priority:</span><span
+                                      class="font-semibold text-red-600">High</span></span>
+                                  <span class="font-semibold text-red-600 flex items-center gap-1"><i
+                                      data-feather="trending-down" class="w-3 h-3"></i> Regressing</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                  <button
+                                    class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">View
+                                    Details</button>
+                                  <button
+                                    class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">Modify</button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="pt-2">
+                              <button
+                                class="text-[#0065a3] text-xs font-semibold flex items-center gap-1 hover:underline"><i
+                                  data-feather="plus" class="w-3 h-3"></i> Add goal</button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Collapsed Card -->
+                        <div
+                          class="rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-gray-50 px-4 py-3 flex items-center gap-2.5">
+                          <i data-feather="chevron-right" class="w-3.5 h-3.5 text-gray-400"></i>
                           <div class="flex-1 min-w-0">
                             <p class="text-xs text-gray-400 font-medium leading-none mb-0.5">Health Concern</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate">Type 2 Diabetes prevention</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">Hypertension management</p>
                           </div>
-                          <span class="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-[#0065a3]/10 text-[#0065a3]">3</span>
-                          <button class="flex-none px-3 py-1 text-xs font-medium rounded-md bg-[#0065a3] text-white">View Details</button>
+                          <span
+                            class="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-[#0065a3]/10 text-[#0065a3]">1</span>
+                          <button
+                            class="flex-none px-3 py-1 text-xs font-medium rounded-md bg-white border border-gray-300 text-gray-600">View
+                            Details</button>
                         </div>
-                        <div class="p-3 space-y-2 border-t border-[#0065a3]/20 bg-white">
-                          
-                          <!-- Goal Row 1 -->
-                          <div class="rounded-lg border border-l-4 px-4 py-3 bg-white border-gray-200 border-l-red-500">
-                            <div class="flex items-start justify-between gap-4">
-                              <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-0.5"><span class="text-xs font-semibold text-[#0065a3]">Goal</span></div>
-                                <p class="text-sm font-medium text-gray-900">Maintain healthy blood glucose</p>
-                              </div>
-                              <div class="flex-none flex flex-col items-end gap-0.5 text-right shrink-0">
-                                <span class="text-xs"><span class="text-gray-400 mr-1">Target:</span><span class="font-semibold text-gray-900">Mar 12, 2022</span></span>
-                                <span class="text-[10px] text-gray-400">Feb 22, 2022 06:42</span>
-                              </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-2">
-                              <div class="flex items-center gap-4 text-xs text-gray-700">
-                                <span><span class="text-gray-400 mr-1">Status:</span><span class="font-semibold text-gray-900">In Progress</span></span>
-                                <span><span class="text-gray-400 mr-1">Priority:</span><span class="font-semibold text-red-600">High</span></span>
-                                <span class="font-semibold text-green-700 flex items-center gap-1"><i data-feather="trending-up" class="w-3 h-3"></i> Progressing</span>
-                              </div>
-                              <div class="flex items-center gap-1.5">
-                                <button class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">View Details</button>
-                                <button class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">Modify</button>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <!-- Goal Row 2 (Highlighted) -->
-                          <div class="rounded-lg border border-l-4 px-4 py-3 bg-[#edf8fd] border-[#b8e0f5] border-l-red-500">
-                            <div class="flex items-start justify-between gap-4">
-                              <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-0.5"><span class="text-xs font-semibold text-[#0065a3]">Goal</span> <span class="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px]"><i data-feather="clock" class="w-2.5 h-2.5"></i> Overdue</span></div>
-                                <p class="text-sm font-medium text-gray-900">Fasting blood sugar test</p>
-                              </div>
-                              <div class="flex-none flex flex-col items-end gap-0.5 text-right shrink-0">
-                                <span class="text-xs"><span class="text-gray-400 mr-1">Target:</span><span class="font-semibold text-red-600">Mar 12, 2022</span></span>
-                                <span class="text-[10px] text-gray-400">Feb 22, 2022 06:42</span>
-                              </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-2">
-                              <div class="flex items-center gap-4 text-xs text-gray-700">
-                                <span><span class="text-gray-400 mr-1">Status:</span><span class="font-semibold text-gray-900">In Progress</span></span>
-                                <span><span class="text-gray-400 mr-1">Priority:</span><span class="font-semibold text-red-600">High</span></span>
-                                <span class="font-semibold text-green-700 flex items-center gap-1"><i data-feather="trending-up" class="w-3 h-3"></i> Progressing</span>
-                              </div>
-                              <div class="flex items-center gap-1.5">
-                                <button class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">View Details</button>
-                                <button class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">Modify</button>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <!-- Goal Row 3 -->
-                          <div class="rounded-lg border border-l-4 px-4 py-3 bg-white border-gray-200 border-l-red-500">
-                            <div class="flex items-start justify-between gap-4">
-                              <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-0.5"><span class="text-xs font-semibold text-[#0065a3]">Long Term Goal</span></div>
-                                <p class="text-sm font-medium text-gray-900">Maintain healthy blood glucose long name for Goal goes here</p>
-                              </div>
-                              <div class="flex-none flex flex-col items-end gap-0.5 text-right shrink-0">
-                                <span class="text-xs"><span class="text-gray-400 mr-1">Target:</span><span class="font-semibold text-gray-900">Mar 12, 2022</span></span>
-                                <span class="text-[10px] text-gray-400">Feb 22, 2022 06:42</span>
-                              </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-2">
-                              <div class="flex items-center gap-4 text-xs text-gray-700">
-                                <span><span class="text-gray-400 mr-1">Status:</span><span class="font-semibold text-gray-900">In Progress</span></span>
-                                <span><span class="text-gray-400 mr-1">Priority:</span><span class="font-semibold text-red-600">High</span></span>
-                                <span class="font-semibold text-red-600 flex items-center gap-1"><i data-feather="trending-down" class="w-3 h-3"></i> Regressing</span>
-                              </div>
-                              <div class="flex items-center gap-1.5">
-                                <button class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">View Details</button>
-                                <button class="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm">Modify</button>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div class="pt-2">
-                            <button class="text-[#0065a3] text-xs font-semibold flex items-center gap-1 hover:underline"><i data-feather="plus" class="w-3 h-3"></i> Add goal</button>
-                          </div>
-                        </div>
+
                       </div>
-                      
-                      <!-- Collapsed Card -->
-                      <div class="rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-gray-50 px-4 py-3 flex items-center gap-2.5">
-                        <i data-feather="chevron-right" class="w-3.5 h-3.5 text-gray-400"></i>
-                        <div class="flex-1 min-w-0">
-                          <p class="text-xs text-gray-400 font-medium leading-none mb-0.5">Health Concern</p>
-                          <p class="text-sm font-semibold text-gray-900 truncate">Hypertension management</p>
-                        </div>
-                        <span class="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-[#0065a3]/10 text-[#0065a3]">1</span>
-                        <button class="flex-none px-3 py-1 text-xs font-medium rounded-md bg-white border border-gray-300 text-gray-600">View Details</button>
-                      </div>
-                      
-                    </div>
-                    
-                    <!-- Side panel drawer -->
-                    <div class="flex flex-col w-72 border-l border-gray-200 bg-white shadow-xl overflow-hidden pointer-events-auto">
-                      <div class="flex-none bg-gradient-to-b from-[#f0f7ff] to-[#e8f3fd] border-b border-[#c8dff0]">
-                        <div class="flex items-start justify-between px-4 pt-3 pb-0">
-                          <div class="flex-1 min-w-0">
-                            <p class="text-xs font-semibold text-[#0065a3] uppercase tracking-wide mb-0.5">Health Concern</p>
-                            <p class="font-bold text-gray-900 leading-snug text-sm pr-2">Type 2 Diabetes prevention</p>
+
+                      <!-- Side panel drawer -->
+                      <div
+                        class="flex flex-col w-72 border-l border-gray-200 bg-white shadow-xl overflow-hidden pointer-events-auto">
+                        <div class="flex-none bg-gradient-to-b from-[#f0f7ff] to-[#e8f3fd] border-b border-[#c8dff0]">
+                          <div class="flex items-start justify-between px-4 pt-3 pb-0">
+                            <div class="flex-1 min-w-0">
+                              <p class="text-xs font-semibold text-[#0065a3] uppercase tracking-wide mb-0.5">Health
+                                Concern</p>
+                              <p class="font-bold text-gray-900 leading-snug text-sm pr-2">Type 2 Diabetes prevention
+                              </p>
+                            </div>
+                            <button class="p-1 rounded text-gray-400"><i data-feather="x"
+                                class="w-3.5 h-3.5"></i></button>
                           </div>
-                          <button class="p-1 rounded text-gray-400"><i data-feather="x" class="w-3.5 h-3.5"></i></button>
+                          <div class="flex px-4 mt-2">
+                            <div
+                              class="relative py-2 mr-5 text-xs text-gray-900 font-semibold border-b-2 border-[#0065a3]">
+                              Details</div>
+                          </div>
                         </div>
-                        <div class="flex px-4 mt-2">
-                          <div class="relative py-2 mr-5 text-xs text-gray-900 font-semibold border-b-2 border-[#0065a3]">Details</div>
-                        </div>
-                      </div>
-                      <div class="p-4 space-y-3">
-                        <div class="grid grid-cols-2 gap-x-4">
-                          <div><p class="text-[10px] text-gray-400 mb-0.5">Status</p><p class="text-xs text-gray-900">Active</p></div>
-                          <div><p class="text-[10px] text-gray-400 mb-0.5">Expressed By</p><p class="text-xs text-gray-900">--</p></div>
-                        </div>
-                        <div class="border-t border-gray-200 pt-3">
-                          <p class="text-sm font-medium text-gray-900 mb-2">Comments</p>
-                          <input type="text" placeholder="Write your comment..." class="w-full text-xs px-3 py-1.5 border border-gray-300 rounded" />
+                        <div class="p-4 space-y-3">
+                          <div class="grid grid-cols-2 gap-x-4">
+                            <div>
+                              <p class="text-[10px] text-gray-400 mb-0.5">Status</p>
+                              <p class="text-xs text-gray-900">Active</p>
+                            </div>
+                            <div>
+                              <p class="text-[10px] text-gray-400 mb-0.5">Expressed By</p>
+                              <p class="text-xs text-gray-900">--</p>
+                            </div>
+                          </div>
+                          <div class="border-t border-gray-200 pt-3">
+                            <p class="text-sm font-medium text-gray-900 mb-2">Comments</p>
+                            <input type="text" placeholder="Write your comment..."
+                              class="w-full text-xs px-3 py-1.5 border border-gray-300 rounded" />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
-            
           </div>
         </div>
-      </div>
 
-      <!-- Annotation Cards -->
-      <div class="max-w-7xl mx-auto px-8 w-full grid grid-cols-4 gap-3 mt-2" id="cards-container">
-        <!-- populated by js -->
+        <!-- Annotation Cards -->
+        <div class="max-w-7xl mx-auto px-8 w-full grid grid-cols-4 gap-3 mt-2" id="cards-container">
+          <!-- populated by js -->
+        </div>
       </div>
     </div>
+
   </div>
 
-</div>
+  <script>
+    feather.replace();
 
-<script>
-  feather.replace();
+    const annotations = [
+      { id: 1, color: "#0065a3", tag: "Safety", title: "Patient identity strip", why: "Name, DOB, allergies pinned across all views — eliminates wrong-patient errors during context switches.", position: { top: "19%", left: "44%" } },
+      { id: 2, color: "#7c3aed", tag: "Navigation", title: "Persistent workflow sidebar", why: "Mirrors the clinical mental model (Problems → Meds → Care Plan) so staff never lose their place.", position: { top: "60%", left: "6%" } },
+      { id: 3, color: "#0d9488", tag: "Information Architecture", title: "Domain-segmented tabs", why: "Separates physician-led concerns, interdisciplinary goals, and social-work strengths into one click each.", position: { top: "34%", left: "60%" } },
+      { id: 4, color: "#d97706", tag: "Progressive Disclosure", title: "Expandable concern cards", why: "10+ concerns collapse to a scannable list — expand only what the visit needs, without leaving the page.", position: { top: "52%", left: "38%" } },
+      { id: 5, color: "#2563eb", tag: "Data Density", title: "Rich goal cards", why: "Status, priority, target date, and progression on one card — triage at a glance, no drilling required.", position: { top: "68%", left: "52%" } },
+      { id: 6, color: "#16a34a", tag: "Interaction Pattern", title: "Contextual detail drawer", why: "Goal details slide in beside the list, not over it — spatial context is preserved, back-nav fatigue gone.", position: { top: "47%", right: "5%" } },
+      { id: 7, color: "#dc2626", tag: "Visual Language", title: "Color-coded status system", why: "Blue/green/amber/red map to natural associations; labeled text keeps it accessible for color-blind users.", position: { top: "76%", left: "46%" } },
+    ];
 
-  const annotations = [
-    { id: 1, color: "#0065a3", tag: "Safety", title: "Patient identity strip", why: "Name, DOB, allergies pinned across all views — eliminates wrong-patient errors during context switches.", position: { top: "19%", left: "44%" } },
-    { id: 2, color: "#7c3aed", tag: "Navigation", title: "Persistent workflow sidebar", why: "Mirrors the clinical mental model (Problems → Meds → Care Plan) so staff never lose their place.", position: { top: "60%", left: "6%" } },
-    { id: 3, color: "#0d9488", tag: "Information Architecture", title: "Domain-segmented tabs", why: "Separates physician-led concerns, interdisciplinary goals, and social-work strengths into one click each.", position: { top: "34%", left: "60%" } },
-    { id: 4, color: "#d97706", tag: "Progressive Disclosure", title: "Expandable concern cards", why: "10+ concerns collapse to a scannable list — expand only what the visit needs, without leaving the page.", position: { top: "52%", left: "38%" } },
-    { id: 5, color: "#2563eb", tag: "Data Density", title: "Rich goal cards", why: "Status, priority, target date, and progression on one card — triage at a glance, no drilling required.", position: { top: "68%", left: "52%" } },
-    { id: 6, color: "#16a34a", tag: "Interaction Pattern", title: "Contextual detail drawer", why: "Goal details slide in beside the list, not over it — spatial context is preserved, back-nav fatigue gone.", position: { top: "47%", right: "5%" } },
-    { id: 7, color: "#dc2626", tag: "Visual Language", title: "Color-coded status system", why: "Blue/green/amber/red map to natural associations; labeled text keeps it accessible for color-blind users.", position: { top: "76%", left: "46%" } },
-  ];
+    const dotsContainer = document.getElementById('dots-container');
+    const cardsContainer = document.getElementById('cards-container');
+    const emrContainer = document.getElementById('emr-container');
 
-  const dotsContainer = document.getElementById('dots-container');
-  const cardsContainer = document.getElementById('cards-container');
-  const emrContainer = document.getElementById('emr-container');
+    annotations.forEach(ann => {
+      // Build Dot
+      const dot = document.createElement('div');
+      dot.className = 'annotation-dot';
+      Object.assign(dot.style, ann.position);
+      dot.style.setProperty('--ann-color', ann.color);
+      dot.dataset.id = ann.id;
 
-  annotations.forEach(ann => {
-    // Build Dot
-    const dot = document.createElement('div');
-    dot.className = 'annotation-dot';
-    Object.assign(dot.style, ann.position);
-    dot.style.setProperty('--ann-color', ann.color);
-    dot.dataset.id = ann.id;
-    
-    dot.innerHTML = `
+      dot.innerHTML = `
       <div class="annotation-ping" style="background-color: ${ann.color}"></div>
       <div class="annotation-dot-inner" style="background-color: ${ann.color}">${ann.id}</div>
     `;
-    dotsContainer.appendChild(dot);
+      dotsContainer.appendChild(dot);
 
-    // Build Card
-    const card = document.createElement('div');
-    card.className = 'annotation-card rounded-xl px-4 py-3 bg-white cursor-default';
-    card.style.setProperty('--ann-color', ann.color);
-    card.style.setProperty('--ann-bg', ann.color + '08');
-    card.style.borderLeftColor = ann.color;
-    card.dataset.id = ann.id;
+      // Build Card
+      const card = document.createElement('div');
+      card.className = 'annotation-card rounded-xl px-4 py-3 bg-white cursor-default';
+      card.style.setProperty('--ann-color', ann.color);
+      card.style.setProperty('--ann-bg', ann.color + '08');
+      card.style.borderLeftColor = ann.color;
+      card.dataset.id = ann.id;
 
-    card.innerHTML = `
+      card.innerHTML = `
       <div class="flex items-center gap-2 mb-1">
         <span class="flex-none flex items-center justify-center rounded-full text-white font-bold" style="width:18px;height:18px;font-size:10px;background-color:${ann.color}">${ann.id}</span>
         <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style="background-color:${ann.color}15;color:${ann.color}">${ann.tag}</span>
@@ -793,26 +977,27 @@
       <p class="font-semibold text-gray-900 text-[13px]">${ann.title}</p>
       <p class="text-gray-500 leading-snug mt-1 text-[11px]">${ann.why}</p>
     `;
-    cardsContainer.appendChild(card);
+      cardsContainer.appendChild(card);
 
-    // Event Listeners
-    const enter = () => {
-      document.querySelectorAll('.annotation-dot, .annotation-card').forEach(el => el.classList.remove('active'));
-      dot.classList.add('active');
-      card.classList.add('active');
-      emrContainer.classList.add('has-active-annotation');
-    };
-    const leave = () => {
-      dot.classList.remove('active');
-      card.classList.remove('active');
-      emrContainer.classList.remove('has-active-annotation');
-    };
+      // Event Listeners
+      const enter = () => {
+        document.querySelectorAll('.annotation-dot, .annotation-card').forEach(el => el.classList.remove('active'));
+        dot.classList.add('active');
+        card.classList.add('active');
+        emrContainer.classList.add('has-active-annotation');
+      };
+      const leave = () => {
+        dot.classList.remove('active');
+        card.classList.remove('active');
+        emrContainer.classList.remove('has-active-annotation');
+      };
 
-    dot.addEventListener('mouseenter', enter);
-    dot.addEventListener('mouseleave', leave);
-    card.addEventListener('mouseenter', enter);
-    card.addEventListener('mouseleave', leave);
-  });
-</script>
+      dot.addEventListener('mouseenter', enter);
+      dot.addEventListener('mouseleave', leave);
+      card.addEventListener('mouseenter', enter);
+      card.addEventListener('mouseleave', leave);
+    });
+  </script>
 </body>
+
 </html>
