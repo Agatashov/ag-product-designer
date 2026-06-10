@@ -1190,6 +1190,7 @@ section {
   font-size: 0.875rem;
   color: var(--dim);
   line-height: 1.7;
+  max-width: 860px;
 }
 
 /* ================================================
